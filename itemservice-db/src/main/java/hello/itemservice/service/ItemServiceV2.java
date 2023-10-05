@@ -18,7 +18,11 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class ItemServiceV2 implements ItemService {
 
+	// 단순 JPA 사용 시 EntityManager 를 이용 해서 처리.
+	// private final EntityManager em;
+	// 스프링 데이터 JPA 를 사용하는 저장소
 	private final ItemRepositoryV2 itemRepositoryV2;
+	// QueryDSL 을 사용하는 저장소
 	private final ItemQueryRepositoryV2 itemQueryRepositoryV2;
 
 	@Override

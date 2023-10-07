@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
@@ -132,5 +133,23 @@ public class BasicTxTest {
 		// 어다에서 rollback-only 로 표시 했는데, 너는 commit 할려고 한다. 그래서 UnexpectedRollbackException 일으키고 rollback 시킬거야
 		// txManager.commit(outer);
 		assertThatThrownBy(() -> txManager.commit(outer)).isInstanceOf(UnexpectedRollbackException.class);
+	}
+
+	@Test
+	void inner_rollback_requires_new() {
+		log.info("외부 트랜잭션 시작");
+		TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+		log.info("outer.isNewTransaction() = {}", outer.isNewTransaction());
+
+		log.info("내부 트랜잭션 시작");
+		DefaultTransactionAttribute definition = new DefaultTransactionAttribute();
+		definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		TransactionStatus inner = txManager.getTransaction(definition);
+		log.info("inner.isNewTransaction() = {}", inner.isNewTransaction());
+		log.info("내부 트랜잭션 롤백");
+		txManager.rollback(inner);
+
+		log.info("외부 트랜잭션 커밋");
+		txManager.commit(outer);
 	}
 }
